@@ -17,15 +17,24 @@ export class SeedService {
   ) {}
 
   async executeSeed() {
-    const { data } = await this.axios.get<PokeResponse>('https://pokeapi.co/api/v2/pokemon?limit=10');
+
+    //Limpiamos la tabla antes de insertar
+    await this.pokemonModel.deleteMany({});
+
+    const { data } = await this.axios.get<PokeResponse>('https://pokeapi.co/api/v2/pokemon?limit=600');
+
+    const pokemonToInsert: {name: string, no: number}[] = [];
 
     data.results.forEach( async({name, url}) => {
       const segments = url.split('/');
       const no: number = +segments[segments.length - 2];
 
-      const pokemon = await this.pokemonModel.create( {name, no} );
+      //const pokemon = await this.pokemonModel.create( {name, no} );
+      pokemonToInsert.push({name, no});
 
     } );
+
+    await this.pokemonModel.insertMany( pokemonToInsert );
 
     return 'Seed Executed';
   }
