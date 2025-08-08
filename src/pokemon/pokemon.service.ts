@@ -4,16 +4,22 @@ import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { isValidObjectId, Model } from 'mongoose';
 import { Pokemon } from './entities/pokemon.entity';
-
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PokemonService {
+
+  private defaultLimit: number;
 
   constructor(
     //Para llamar la BD
     @InjectModel( Pokemon.name )//Se le da el nombre al modelo
     private readonly pokemonModel: Model<Pokemon>,//se define la Dependecia en este caso el Model que es de moogose con la estructura de nuestro entitiy Pokemon
-  ) {}
+    private readonly configService: ConfigService,
+  ) { 
+    this.defaultLimit = configService.get<number>('defaultLimit') ?? 0;
+  }
 
   async create(createPokemonDto: CreatePokemonDto) {
     createPokemonDto.name = createPokemonDto.name.toLocaleLowerCase();
@@ -27,8 +33,14 @@ export class PokemonService {
     }
   }
 
-  async findAll() {
-    return this.pokemonModel.find();
+  async findAll(paginationDto: PaginationDto) {
+    const {limit = this.defaultLimit, offset = 0} = paginationDto;
+    return this.pokemonModel
+    .find()
+    .limit( limit )
+    .skip( offset )
+    .sort({ no: 1 })
+    .select('-__v');
   }
 
   async findOne(term: string) {//En este caso el parametro term se refiero a cualquier campo "no" "name" o "id"

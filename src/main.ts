@@ -10,6 +10,10 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transform: true,//Para transformar la data de QueryParameters en la paginacion
+      transformOptions: {//Para transformar la data de QueryParameters en la paginacion
+        enableImplicitConversion: true,//Para transformar la data de QueryParameters en la paginacion
+      }
     })
   );
 
